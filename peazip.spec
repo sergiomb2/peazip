@@ -1,10 +1,12 @@
 Name: peazip
 Summary: File and archive manager
-Version: 5.5.3
-Release: 2%{?dist}
+Version: 5.6.0
+Release: 1%{?dist}
 Source0: http://sourceforge.net/projects/%{name}/files/%{version}/%{name}-%{version}.src.zip
 # configure to run in users home appdata
 Source1: altconf.txt
+Patch1: peazip-5.6.0-desktop.patch
+Patch2: peazip-5.6.0-qtnaming.patch
 License: LGPLv3
 Group:   File tools
 Url:     http://www.peazip.org/
@@ -12,7 +14,6 @@ BuildRequires: fpc fpc-src lazarus >= 1.0.4
 BuildRequires: qt4pas-devel
 BuildRequires: qt4-devel
 BuildRequires: desktop-file-utils
-Requires: p7zip-plugins upx
 
 %description
 PeaZip is a cross-platform portable file and archiver manager.
@@ -26,18 +27,41 @@ create self-extracting archives; bookmark archives and folders;
 apply powerful multiple search filters to archive's content;
 export job definition as command line; save archive's layouts;
 use custom compressors and extractors; scan and open with custom
-applications compressed and uncompressed files etc... 
+applications compressed and uncompressed files etc...
 
 Other features: strong encryption, encrypted password manager, robust file copy,
 split/join files (file span), secure data deletion, compare, checksum and hash
 files, system benchmark, generate random passwords and keyfiles
 
+%package common
+Summary: The common files needed by any version of the peazip.
+Requires: p7zip-plugins upx
+Obsoletes: peazip
+%description common
+%{summary}
+
+%package gtk
+Summary: This package provides the GTK2 graphical interface for %{name}
+Requires: %{name}-common%{?_isa} = %{version}-%{release}
+%description gtk
+%{summary}
+
+%package qt
+Summary: Qt interface for %{name}
+Requires: %{name}-common%{?_isa} = %{version}-%{release}
+%description qt
+%{summary}
+
 %prep
 %setup -q -c -n %{name}-%{version}.src
 pushd %{name}-%{version}.src
 chmod +w res/lang
+%patch1 -p1
 popd
-cp -pr %{name}-%{version}.src %{name}-%{version}-gtk.src
+cp -pr %{name}-%{version}.src %{name}-%{version}-qt.src
+pushd %{name}-%{version}-qt.src
+%patch2 -p1
+popd
 
 %build
 
@@ -46,17 +70,17 @@ lazbuild --lazarusdir=%{_libdir}/lazarus \
 %ifarch x86_64
 	--cpu=x86_64 \
 %endif
-    --widgetset=qt \
+    --widgetset=gtk2 \
     -B project_pea.lpi project_peach.lpi project_gwrap.lpi
 #project_demo_lib.lpi
 popd
 
-pushd %{name}-%{version}-gtk.src
+pushd %{name}-%{version}-qt.src
 lazbuild --lazarusdir=%{_libdir}/lazarus \
 %ifarch x86_64
 	--cpu=x86_64 \
 %endif
-	--widgetset=gtk2 \
+	--widgetset=qt \
     -B project_pea.lpi project_peach.lpi project_gwrap.lpi
 popd
 
@@ -85,6 +109,16 @@ mkdir -p %{buildroot}%{_datadir}/applications
 desktop-file-install --dir %{buildroot}%{_datadir}/applications \
                      FreeDesktop_integration/peazip.desktop
 install -Dm644 FreeDesktop_integration/%{name}.png %{buildroot}%{_datadir}/pixmaps/%{name}.png
+popd
+
+pushd %{name}-%{version}-qt.src
+install peazip_qt %{buildroot}%{_datadir}/peazip
+ln -s ../..%{_datadir}/peazip/peazip_qt %{buildroot}%{_bindir}
+install pealauncher_qt %{buildroot}%{_datadir}/peazip/res
+ln -s ../..%{_datadir}/peazip/res/pealauncher_qt %{buildroot}%{_bindir}
+install pea_qt %{buildroot}%{_datadir}/peazip/res
+ln -s ../..%{_datadir}/peazip/res/pea_qt %{buildroot}%{_bindir}
+popd
 
 # IHMO if this is necessary should be done outside of rpmbuild.
 ## move and convert peazip icon
@@ -95,16 +129,34 @@ install -Dm644 FreeDesktop_integration/%{name}.png %{buildroot}%{_datadir}/pixma
 #%{__cp} %{name}-2.png %{buildroot}%{_datadir}/icons/hicolor/32x32/apps/%{name}.png
 #%{__cp} %{name}-4.png %{buildroot}%{_datadir}/icons/hicolor/16x16/apps/%{name}.png
 
-
-%files
-%doc %{name}-%{version}.src/readme* %{name}-%{version}.src/copying.txt
+%files gtk
 %{_bindir}/peazip
 %{_bindir}/pea
 %{_bindir}/pealauncher
+%{_datadir}/peazip/peazip
+%{_datadir}/peazip/res/pea
+%{_datadir}/peazip/res/pealauncher
+
+%files qt
+%{_bindir}/peazip_qt
+%{_bindir}/pea_qt
+%{_bindir}/pealauncher_qt
+%{_datadir}/peazip/peazip_qt
+%{_datadir}/peazip/res/pea_qt
+%{_datadir}/peazip/res/pealauncher_qt
+
+%files common
+%doc %{name}-%{version}.src/readme* %{name}-%{version}.src/copying.txt
 #{_datadir}/icons/hicolor/*/apps/*.png
 %{_datadir}/pixmaps/%{name}.png
 %{_datadir}/applications/*.desktop
 %{_datadir}/peazip
+%exclude %{_datadir}/peazip/peazip
+%exclude %{_datadir}/peazip/peazip_qt
+%exclude %{_datadir}/peazip/res/pea
+%exclude %{_datadir}/peazip/res/pea_qt
+%exclude %{_datadir}/peazip/res/pealauncher
+%exclude %{_datadir}/peazip/res/pealauncher_qt
 
 %changelog
 * Fri Jan 17 2014 Sérgio Basto <sergio@serjux.com> - 5.2.1-2
