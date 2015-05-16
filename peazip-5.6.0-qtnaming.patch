@@ -1,0 +1,36 @@
+diff -urp peazip-5.6.0.src.orig/project_gwrap.lpi peazip-5.6.0.src/project_gwrap.lpi
+--- peazip-5.6.0.src.orig/project_gwrap.lpi	2015-04-25 19:16:22.000000000 +0100
++++ peazip-5.6.0.src/project_gwrap.lpi	2015-05-16 15:35:39.764164442 +0100
+@@ -416,7 +416,7 @@
+     <Version Value="11"/>
+     <PathDelim Value="\"/>
+     <Target>
+-      <Filename Value="pealauncher"/>
++      <Filename Value="pealauncher_qt"/>
+     </Target>
+     <SearchPaths>
+       <SrcPath Value="$(LazarusDir)\lcl;$(LazarusDir)\lcl\interfaces\$(LCLWidgetType)"/>
+diff -urp peazip-5.6.0.src.orig/project_peach.lpi peazip-5.6.0.src/project_peach.lpi
+--- peazip-5.6.0.src.orig/project_peach.lpi	2015-04-25 18:16:02.000000000 +0100
++++ peazip-5.6.0.src/project_peach.lpi	2015-05-16 15:35:11.779830211 +0100
+@@ -1054,7 +1054,7 @@
+     <Version Value="11"/>
+     <PathDelim Value="\"/>
+     <Target>
+-      <Filename Value="peazip"/>
++      <Filename Value="peazip_qt"/>
+     </Target>
+     <SearchPaths>
+       <SrcPath Value="$(LazarusDir)\lcl;$(LazarusDir)\lcl\interfaces\$(LCLWidgetType)"/>
+diff -urp peazip-5.6.0.src.orig/project_pea.lpi peazip-5.6.0.src/project_pea.lpi
+--- peazip-5.6.0.src.orig/project_pea.lpi	2014-07-06 10:47:10.000000000 +0100
++++ peazip-5.6.0.src/project_pea.lpi	2015-05-16 15:35:27.781021313 +0100
+@@ -382,7 +382,7 @@
+     <Version Value="11"/>
+     <PathDelim Value="\"/>
+     <Target>
+-      <Filename Value="pea"/>
++      <Filename Value="pea_qt"/>
+     </Target>
+     <SearchPaths>
+       <SrcPath Value="$(LazarusDir)\lcl;$(LazarusDir)\lcl\interfaces\$(LCLWidgetType)"/>
