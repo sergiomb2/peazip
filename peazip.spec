@@ -1,12 +1,14 @@
+%global enable_qt 0
+
 Name: peazip
 Summary: File and archive manager
-Version: 5.6.0
+Version: 5.5.3
 Release: 1%{?dist}
 Source0: http://sourceforge.net/projects/%{name}/files/%{version}/%{name}-%{version}.src.zip
 # configure to run in users home appdata
 Source1: altconf.txt
-Patch1: peazip-5.6.0-desktop.patch
-Patch2: peazip-5.6.0-qtnaming.patch
+Patch1: peazip-desktop.patch
+Patch2: peazip-qtnaming.patch
 License: LGPLv3
 Group:   File tools
 Url:     http://www.peazip.org/
@@ -14,6 +16,7 @@ BuildRequires: fpc fpc-src lazarus >= 1.0.4
 BuildRequires: qt4pas-devel
 BuildRequires: qt4-devel
 BuildRequires: desktop-file-utils
+Requires: %{name}-common%{?_isa} = %{version}-%{release}
 
 %description
 PeaZip is a cross-platform portable file and archiver manager.
@@ -32,25 +35,19 @@ applications compressed and uncompressed files etc...
 Other features: strong encryption, encrypted password manager, robust file copy,
 split/join files (file span), secure data deletion, compare, checksum and hash
 files, system benchmark, generate random passwords and keyfiles
+Default package provides the GTK2 graphical interface.
 
 %package common
 Summary: The common files needed by any version of the peazip.
 Requires: p7zip-plugins upx
-Obsoletes: peazip
 %description common
-%{summary}
-
-%package gtk
-Summary: This package provides the GTK2 graphical interface for %{name}
-Requires: %{name}-common%{?_isa} = %{version}-%{release}
-%description gtk
-%{summary}
+%{description}
 
 %package qt
 Summary: Qt interface for %{name}
 Requires: %{name}-common%{?_isa} = %{version}-%{release}
 %description qt
-%{summary}
+%{description}
 
 %prep
 %setup -q -c -n %{name}-%{version}.src
@@ -58,10 +55,13 @@ pushd %{name}-%{version}.src
 chmod +w res/lang
 %patch1 -p1
 popd
+
+%if %{enable_qt}
 cp -pr %{name}-%{version}.src %{name}-%{version}-qt.src
 pushd %{name}-%{version}-qt.src
 %patch2 -p1
 popd
+%endif
 
 %build
 
@@ -75,6 +75,7 @@ lazbuild --lazarusdir=%{_libdir}/lazarus \
 #project_demo_lib.lpi
 popd
 
+%if %{enable_qt}
 pushd %{name}-%{version}-qt.src
 lazbuild --lazarusdir=%{_libdir}/lazarus \
 %ifarch x86_64
@@ -83,6 +84,7 @@ lazbuild --lazarusdir=%{_libdir}/lazarus \
 	--widgetset=qt \
     -B project_pea.lpi project_peach.lpi project_gwrap.lpi
 popd
+%endif
 
 %install
 mkdir -p %{buildroot}%{_bindir}
@@ -111,6 +113,7 @@ desktop-file-install --dir %{buildroot}%{_datadir}/applications \
 install -Dm644 FreeDesktop_integration/%{name}.png %{buildroot}%{_datadir}/pixmaps/%{name}.png
 popd
 
+%if %{enable_qt}
 pushd %{name}-%{version}-qt.src
 install peazip_qt %{buildroot}%{_datadir}/peazip
 ln -s ../..%{_datadir}/peazip/peazip_qt %{buildroot}%{_bindir}
@@ -119,6 +122,7 @@ ln -s ../..%{_datadir}/peazip/res/pealauncher_qt %{buildroot}%{_bindir}
 install pea_qt %{buildroot}%{_datadir}/peazip/res
 ln -s ../..%{_datadir}/peazip/res/pea_qt %{buildroot}%{_bindir}
 popd
+%endif
 
 # IHMO if this is necessary should be done outside of rpmbuild.
 ## move and convert peazip icon
@@ -129,7 +133,7 @@ popd
 #%{__cp} %{name}-2.png %{buildroot}%{_datadir}/icons/hicolor/32x32/apps/%{name}.png
 #%{__cp} %{name}-4.png %{buildroot}%{_datadir}/icons/hicolor/16x16/apps/%{name}.png
 
-%files gtk
+%files
 %{_bindir}/peazip
 %{_bindir}/pea
 %{_bindir}/pealauncher
@@ -137,6 +141,7 @@ popd
 %{_datadir}/peazip/res/pea
 %{_datadir}/peazip/res/pealauncher
 
+%if %{enable_qt}
 %files qt
 %{_bindir}/peazip_qt
 %{_bindir}/pea_qt
@@ -144,6 +149,7 @@ popd
 %{_datadir}/peazip/peazip_qt
 %{_datadir}/peazip/res/pea_qt
 %{_datadir}/peazip/res/pealauncher_qt
+%endif
 
 %files common
 %doc %{name}-%{version}.src/readme* %{name}-%{version}.src/copying.txt
@@ -159,6 +165,9 @@ popd
 %exclude %{_datadir}/peazip/res/pealauncher_qt
 
 %changelog
+* Tue May 26 2015 Sérgio Basto <sergio@serjux.com>
+- Update peazip-5.5.3
+
 * Fri Jan 17 2014 Sérgio Basto <sergio@serjux.com> - 5.2.1-2
 - Bump relversion for epel7
 
