@@ -1,9 +1,9 @@
-%global enable_qt 0
+%global enable_qt 1
 
 Name: peazip
 Summary: File and archive manager
-Version: 5.5.3
-Release: 1%{?dist}
+Version: 5.6.1
+Release: 2%{?dist}
 Source0: http://sourceforge.net/projects/%{name}/files/%{version}/%{name}-%{version}.src.zip
 # configure to run in users home appdata
 Source1: altconf.txt
@@ -165,6 +165,9 @@ popd
 %exclude %{_datadir}/peazip/res/pealauncher_qt
 
 %changelog
+* Wed Jul 15 2015 Sérgio Basto <sergio@serjux.com> - 5.6.1-2
+- Update peazip-5.6.1, enable qt build
+
 * Tue May 26 2015 Sérgio Basto <sergio@serjux.com>
 - Update peazip-5.5.3
 
