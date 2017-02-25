@@ -1,9 +1,10 @@
 %global enable_qt 1
+%define debug_package %{nil}
 
 Name: peazip
 Summary: File and archive manager
-Version: 5.6.1
-Release: 2%{?dist}
+Version: 5.8.1
+Release: 1%{?dist}
 Source0: http://sourceforge.net/projects/%{name}/files/%{version}/%{name}-%{version}.src.zip
 # configure to run in users home appdata
 Source1: altconf.txt
@@ -13,8 +14,10 @@ License: LGPLv3
 Group:   File tools
 Url:     http://www.peazip.org/
 BuildRequires: fpc fpc-src lazarus >= 1.0.4
+%if %{enable_qt}
 BuildRequires: qt4pas-devel
 BuildRequires: qt4-devel
+%endif
 BuildRequires: desktop-file-utils
 Requires: %{name}-common%{?_isa} = %{version}-%{release}
 
@@ -165,6 +168,9 @@ popd
 %exclude %{_datadir}/peazip/res/pealauncher_qt
 
 %changelog
+* Thu Nov 12 2015 Sérgio Basto <sergio@serjux.com> - 5.8.1-1
+- Update PeaZip to 5.8.1
+
 * Wed Jul 15 2015 Sérgio Basto <sergio@serjux.com> - 5.6.1-2
 - Update peazip-5.6.1, enable qt build
 
