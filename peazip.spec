@@ -1,25 +1,33 @@
-%global enable_qt 1
-%define debug_package %{nil}
+# qt4pas is deprecated maybe we will have qt5pas one day
+%bcond_with qt
+%global debug_package %{nil}
 
-Name: peazip
-Summary: File and archive manager
-Version: 5.8.1
+Name:    peazip
+Version: 6.5.1
 Release: 1%{?dist}
+Summary: File and archive manager
+License: LGPLv3
+Group:   Applications/Archiving
+Url:     http://www.peazip.org/peazip-linux.html
 Source0: http://sourceforge.net/projects/%{name}/files/%{version}/%{name}-%{version}.src.zip
 # configure to run in users home appdata
 Source1: altconf.txt
-Patch1: peazip-desktop.patch
-Patch2: peazip-qtnaming.patch
-License: LGPLv3
-Group:   File tools
-Url:     http://www.peazip.org/
-BuildRequires: fpc fpc-src lazarus >= 1.0.4
-%if %{enable_qt}
+Patch1:  peazip-desktop.patch
+
+BuildRequires: fpc
+BuildRequires: fpc-src
+BuildRequires: lazarus >= 1.2.0
+BuildRequires: desktop-file-utils
+
+%if %{with qt}
 BuildRequires: qt4pas-devel
 BuildRequires: qt4-devel
+BuildRequires: qtwebkit-devel
 %endif
-BuildRequires: desktop-file-utils
-Requires: %{name}-common%{?_isa} = %{version}-%{release}
+
+Provides:  peazip-common%{?_isa} = %{version}-%{release}
+Obsoletes: peazip-common < %{version}-%{release}
+Obsoletes: peazip-qt < %{version}-%{release}
 
 %description
 PeaZip is a cross-platform portable file and archiver manager.
@@ -40,59 +48,29 @@ split/join files (file span), secure data deletion, compare, checksum and hash
 files, system benchmark, generate random passwords and keyfiles
 Default package provides the GTK2 graphical interface.
 
-%package common
-Summary: The common files needed by any version of the peazip.
-Requires: p7zip-plugins upx
-%description common
-%{description}
-
-%package qt
-Summary: Qt interface for %{name}
-Requires: %{name}-common%{?_isa} = %{version}-%{release}
-%description qt
-%{description}
-
 %prep
-%setup -q -c -n %{name}-%{version}.src
-pushd %{name}-%{version}.src
+%setup -q -n %{name}-%{version}.src
 chmod +w res/lang
 %patch1 -p1
-popd
-
-%if %{enable_qt}
-cp -pr %{name}-%{version}.src %{name}-%{version}-qt.src
-pushd %{name}-%{version}-qt.src
-%patch2 -p1
-popd
-%endif
 
 %build
+%if %{with qt}
+WGT=qt
+%else
+WGT=gtk2
+%endif
 
-pushd %{name}-%{version}.src
 lazbuild --lazarusdir=%{_libdir}/lazarus \
 %ifarch x86_64
 	--cpu=x86_64 \
 %endif
-    --widgetset=gtk2 \
-    -B project_pea.lpi project_peach.lpi project_gwrap.lpi
+    --widgetset=${WGT} \
+    -B project_peach.lpr project_pea.lpr project_gwrap.lpr
 #project_demo_lib.lpi
-popd
-
-%if %{enable_qt}
-pushd %{name}-%{version}-qt.src
-lazbuild --lazarusdir=%{_libdir}/lazarus \
-%ifarch x86_64
-	--cpu=x86_64 \
-%endif
-	--widgetset=qt \
-    -B project_pea.lpi project_peach.lpi project_gwrap.lpi
-popd
-%endif
 
 %install
 mkdir -p %{buildroot}%{_bindir}
 mkdir -p %{buildroot}%{_datadir}/peazip
-pushd %{name}-%{version}.src
 %{__cp} -r res %{buildroot}%{_datadir}/peazip
 %{__cp} %{SOURCE1} %{buildroot}%{_datadir}/peazip/res
 
@@ -114,18 +92,6 @@ mkdir -p %{buildroot}%{_datadir}/applications
 desktop-file-install --dir %{buildroot}%{_datadir}/applications \
                      FreeDesktop_integration/peazip.desktop
 install -Dm644 FreeDesktop_integration/%{name}.png %{buildroot}%{_datadir}/pixmaps/%{name}.png
-popd
-
-%if %{enable_qt}
-pushd %{name}-%{version}-qt.src
-install peazip_qt %{buildroot}%{_datadir}/peazip
-ln -s ../..%{_datadir}/peazip/peazip_qt %{buildroot}%{_bindir}
-install pealauncher_qt %{buildroot}%{_datadir}/peazip/res
-ln -s ../..%{_datadir}/peazip/res/pealauncher_qt %{buildroot}%{_bindir}
-install pea_qt %{buildroot}%{_datadir}/peazip/res
-ln -s ../..%{_datadir}/peazip/res/pea_qt %{buildroot}%{_bindir}
-popd
-%endif
 
 # IHMO if this is necessary should be done outside of rpmbuild.
 ## move and convert peazip icon
@@ -137,44 +103,30 @@ popd
 #%{__cp} %{name}-4.png %{buildroot}%{_datadir}/icons/hicolor/16x16/apps/%{name}.png
 
 %files
+%doc readme*
+%license copying.txt
 %{_bindir}/peazip
 %{_bindir}/pea
 %{_bindir}/pealauncher
-%{_datadir}/peazip/peazip
-%{_datadir}/peazip/res/pea
-%{_datadir}/peazip/res/pealauncher
-
-%if %{enable_qt}
-%files qt
-%{_bindir}/peazip_qt
-%{_bindir}/pea_qt
-%{_bindir}/pealauncher_qt
-%{_datadir}/peazip/peazip_qt
-%{_datadir}/peazip/res/pea_qt
-%{_datadir}/peazip/res/pealauncher_qt
-%endif
-
-%files common
-%doc %{name}-%{version}.src/readme* %{name}-%{version}.src/copying.txt
 #{_datadir}/icons/hicolor/*/apps/*.png
 %{_datadir}/pixmaps/%{name}.png
 %{_datadir}/applications/*.desktop
 %{_datadir}/peazip
-%exclude %{_datadir}/peazip/peazip
-%exclude %{_datadir}/peazip/peazip_qt
-%exclude %{_datadir}/peazip/res/pea
-%exclude %{_datadir}/peazip/res/pea_qt
-%exclude %{_datadir}/peazip/res/pealauncher
-%exclude %{_datadir}/peazip/res/pealauncher_qt
 
 %changelog
+* Tue Feb 20 2018 Sérgio Basto <sergio@serjux.com> - 6.5.1-1
+- Updated to 6.5.1
+
+* Fri Feb 10 2017 Huaren Zhong <huaren.zhong@gmail.com> 6.3.1
+- Rebuild for Fedora
+
 * Thu Nov 12 2015 Sérgio Basto <sergio@serjux.com> - 5.8.1-1
 - Update PeaZip to 5.8.1
 
 * Wed Jul 15 2015 Sérgio Basto <sergio@serjux.com> - 5.6.1-2
 - Update peazip-5.6.1, enable qt build
 
-* Tue May 26 2015 Sérgio Basto <sergio@serjux.com>
+* Tue May 26 2015 Sérgio Basto <sergio@serjux.com> - 5.5.3-1
 - Update peazip-5.5.3
 
 * Fri Jan 17 2014 Sérgio Basto <sergio@serjux.com> - 5.2.1-2
